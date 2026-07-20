@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <title>みんなの旅しおり</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">グループ旅行の準備帳</p>
+      <h1>みんなの旅しおり</h1>
+      <p class="hero-text">そのまま旅行の決まったことをまとめられます。</p>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="member-header">
+        <div>
+          <h2>旅行をまとめる</h2>
+          <p class="card-text">決まった行き先、資料をここに入れます。</p>
+        </div>
+      </div>
+
+      <p class="email-box">ログインなしで使っています</p>
+
+      <div class="member-layout">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>旅行一覧</h3>
+              <p class="panel-text">登録した旅行だけを表示します。</p>
+            </div>
+            <button id="showTripFormButton" type="button">新しい旅行を作る</button>
+          </div>
+
+          <div id="tripFormSection" class="trip-form hidden">
+            <h3>新しい旅行を作る</h3>
+            <p class="panel-text">決まった内容だけを先に入れられます。</p>
+
+            <label for="tripTitle">旅行名</label>
+            <input id="tripTitle" type="text" placeholder="たとえば 夏の大阪旅行">
+
+            <label for="tripDestination">行き先</label>
+            <input id="tripDestination" type="text" placeholder="たとえば 大阪">
+
+            <div class="form-grid">
+              <div>
+                <label for="tripStartDate">開始日</label>
+                <input id="tripStartDate" type="date">
+              </div>
+              <div>
+                <label for="tripEndDate">終了日</label>
+                <input id="tripEndDate" type="date">
+              </div>
+            </div>
+
+            <label for="tripMeetingPlace">集合場所</label>
+            <input id="tripMeetingPlace" type="text" placeholder="たとえば 東京駅 丸の内口">
+
+            <label for="tripMeetingTime">集合時間</label>
+            <input id="tripMeetingTime" type="time">
+
+            <label for="tripImportantNote">大切なメモ</label>
+            <textarea id="tripImportantNote" rows="4" placeholder="持ち物や気をつけることを書けます"></textarea>
+
+            <div class="button-row">
+              <button id="saveTripButton" type="button">登録する</button>
+              <button id="cancelTripFormButton" type="button" class="secondary-button">閉じる</button>
+            </div>
+
+            <p id="tripFormMessage" class="message error" role="alert" aria-live="assertive"></p>
+          </div>
+
+          <p id="tripListMessage" class="message" aria-live="polite"></p>
+          <div id="tripList" class="trip-list"></div>
+        </section>
+
+        <section class="panel detail-panel">
+          <h3>旅行詳細</h3>
+          <p id="tripDetailEmpty" class="panel-text">旅行カードを押すと、ここにくわしい内容が出ます。</p>
+
+          <div id="tripDetailSection" class="hidden">
+            <div class="detail-box">
+              <h4 id="detailTitle">-</h4>
+              <p><strong>行き先:</strong> <span id="detailDestination">-</span></p>
+              <p><strong>開始日:</strong> <span id="detailStartDate">-</span></p>
+              <p><strong>終了日:</strong> <span id="detailEndDate">-</span></p>
+              <p><strong>集合場所:</strong> <span id="detailMeetingPlace">-</span></p>
+              <p><strong>集合時間:</strong> <span id="detailMeetingTime">-</span></p>
+              <p><strong>大切なメモ:</strong> <span id="detailImportantNote">-</span></p>
+            </div>
+
+            <div class="tab-row" role="tablist" aria-label="旅行の情報タブ">
+              <button id="tabOverview" class="tab-button active" type="button" data-tab="overview">概要</button>
+              <button id="tabPlaces" class="tab-button" type="button" data-tab="places">行き先</button>
+              <button id="tabDocuments" class="tab-button" type="button" data-tab="documents">スクショ・メモ</button>
+            </div>
+
+            <div id="tabContent" class="tab-content"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div id="imagePreviewModal" class="image-modal hidden" aria-hidden="true">
+    <div class="image-modal-backdrop" data-action="close-image-modal"></div>
+    <div class="image-modal-panel" role="dialog" aria-modal="true" aria-label="画像の拡大表示">
+      <button id="closeImageModalButton" type="button" class="secondary-button image-modal-close">閉じる</button>
+      <img id="imagePreview" alt="拡大表示された画像">
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

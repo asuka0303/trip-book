@@ -197,7 +197,7 @@ function setAppLockedState(isLocked) {
   if (!isLocked) {
     const name = currentGroupName || "未設定";
     if (groupSessionInfo) {
-      groupSessionInfo.textContent = `利用中グループ: ${name} / ${currentGroupId}`;
+      groupSessionInfo.textContent = `利用中グループ: ${name} / ID: ${currentGroupId}`;
     }
     return;
   }
@@ -1538,7 +1538,7 @@ async function joinGroup() {
   const groupSecret = normalizeInput(groupPasswordJoinInput.value);
 
   if (!groupId) {
-    showMessage(joinGroupMessage, "グループIDを入れてください。");
+    showMessage(joinGroupMessage, "自動発行のグループIDを入れてください。");
     return;
   }
 

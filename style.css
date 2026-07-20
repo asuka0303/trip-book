@@ -191,6 +191,218 @@ button:disabled {
   margin: 0;
 }
 
+.guide-section {
+  margin-top: 28px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 241, 0.96)),
+    #fff;
+  box-shadow: var(--shadow);
+}
+
+.guide-heading h2 {
+  margin-top: 6px;
+  font-size: clamp(1.4rem, 3.5vw, 2.1rem);
+}
+
+.guide-intro {
+  margin: 10px 0 0;
+  color: var(--subtext);
+  line-height: 1.8;
+}
+
+.guide-comic {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.guide-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(67, 93, 125, 0.08);
+}
+
+.guide-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff7ea, #eef7ff);
+}
+
+.guide-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 159, 67, 0.18) 0 8px, transparent 9px),
+    radial-gradient(circle at 80% 25%, rgba(255, 159, 67, 0.1) 0 7px, transparent 8px),
+    radial-gradient(circle at 60% 78%, rgba(67, 93, 125, 0.08) 0 10px, transparent 11px);
+}
+
+.guide-step {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.guide-copy {
+  margin: 8px 0 0;
+  color: var(--subtext);
+  line-height: 1.7;
+}
+
+.guide-window,
+.guide-key,
+.guide-dots,
+.guide-page,
+.guide-page--back,
+.guide-line,
+.guide-photo-frame,
+.guide-photo-sun,
+.guide-photo-mountain,
+.guide-check-circle,
+.guide-check-line {
+  position: absolute;
+  display: block;
+}
+
+.guide-art--login .guide-window {
+  inset: 22% 20% 24% 20%;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 159, 67, 0.32);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.guide-art--login .guide-key {
+  width: 22%;
+  height: 22%;
+  left: 38%;
+  top: 38%;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+}
+
+.guide-art--login .guide-key::after {
+  content: "";
+  position: absolute;
+  width: 34%;
+  height: 10%;
+  right: -28%;
+  top: 42%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.guide-art--login .guide-dots {
+  width: 30%;
+  height: 8px;
+  left: 35%;
+  bottom: 18%;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, rgba(67, 93, 125, 0.18) 0 6px, transparent 6px 12px);
+}
+
+.guide-art--trip .guide-page {
+  width: 44%;
+  height: 58%;
+  right: 16%;
+  top: 18%;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 159, 67, 0.2);
+  background: #fff;
+  transform: rotate(4deg);
+}
+
+.guide-art--trip .guide-page--back {
+  left: 16%;
+  top: 16%;
+  right: auto;
+  background: #fff3e4;
+  transform: rotate(-8deg);
+}
+
+.guide-art--trip .guide-line {
+  left: 27%;
+  top: 32%;
+  width: 28%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow:
+    0 14px 0 0 rgba(219, 229, 239, 0.95),
+    0 28px 0 0 rgba(219, 229, 239, 0.95);
+}
+
+.guide-art--photo .guide-photo-frame {
+  inset: 18% 18% 20% 18%;
+  border-radius: 18px;
+  border: 3px solid rgba(67, 93, 125, 0.14);
+  background: linear-gradient(180deg, #e8f5ff 0 52%, #fff8e9 52% 100%);
+}
+
+.guide-art--photo .guide-photo-sun {
+  width: 14%;
+  height: 14%;
+  right: 28%;
+  top: 28%;
+  border-radius: 50%;
+  background: #ffcf66;
+}
+
+.guide-art--photo .guide-photo-mountain {
+  left: 28%;
+  bottom: 26%;
+  width: 44%;
+  height: 24%;
+  background: linear-gradient(135deg, #9cc0dc 0 50%, #7fa3c2 50% 100%);
+  clip-path: polygon(0 100%, 20% 40%, 38% 66%, 54% 28%, 74% 52%, 100% 100%);
+}
+
+.guide-art--check .guide-check-circle {
+  width: 46%;
+  height: 46%;
+  left: 27%;
+  top: 18%;
+  border-radius: 50%;
+  border: 5px solid var(--accent);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.guide-art--check .guide-check-circle::after {
+  content: "";
+  position: absolute;
+  left: 32%;
+  top: 48%;
+  width: 24%;
+  height: 10%;
+  border-left: 4px solid var(--accent-dark);
+  border-bottom: 4px solid var(--accent-dark);
+  transform: rotate(-45deg) translateY(-50%);
+}
+
+.guide-art--check .guide-check-line {
+  left: 26%;
+  bottom: 22%;
+  width: 48%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(67, 93, 125, 0.16);
+}
+
+.guide-art--check .guide-check-line--short {
+  width: 30%;
+  bottom: 12%;
+}
+
 .group-session-bar {
   display: flex;
   align-items: center;
@@ -563,8 +775,18 @@ button:disabled {
   .member-header,
   .panel-header,
   .schedule-toolbar,
+  .guide-comic,
   .document-image-preview-meta {
     flex-direction: column;
+  }
+
+  .guide-section {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .guide-comic {
+    grid-template-columns: 1fr;
   }
 
   .document-image-preview-meta button {
@@ -574,6 +796,7 @@ button:disabled {
 
 @media (min-width: 641px) and (max-width: 980px) {
   .member-layout,
+  .guide-comic,
   .trip-list,
   .schedule-list,
   .place-grid,

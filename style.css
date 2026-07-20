@@ -116,6 +116,14 @@ input[type="file"] {
   line-height: 1.4;
 }
 
+input[type="date"],
+input[type="time"] {
+  max-width: 100%;
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 input {
   padding: 0 16px;
 }

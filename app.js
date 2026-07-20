@@ -55,6 +55,9 @@ let supabaseClient = null;
 let bootstrapClient = null;
 let supabaseProjectUrl = "";
 let supabasePublishableKey = "";
+const documentImageBucketName = typeof SUPABASE_STORAGE_BUCKET === "string" && SUPABASE_STORAGE_BUCKET
+  ? SUPABASE_STORAGE_BUCKET
+  : "trip-book-documents";
 let trips = [];
 let selectedTripId = null;
 let activeTab = "places";
@@ -85,6 +88,10 @@ let isDocumentLoading = false;
 let isDocumentProcessing = false;
 let currentImagePreviewUrl = "";
 let currentImagePreviewTitle = "";
+let documentDraftImageFile = null;
+let documentDraftImageUrl = "";
+let documentDraftImageName = "";
+let documentDraftRemoveImage = false;
 
 function showMessage(element, message) {
   element.textContent = message;
@@ -299,6 +306,7 @@ function resetDocumentState() {
   documentFormStatus = "";
   isDocumentLoading = false;
   isDocumentProcessing = false;
+  resetDocumentDraftState();
 }
 
 function resetDetailState() {
@@ -347,6 +355,257 @@ function closeImageModal() {
   imagePreview.src = "";
   currentImagePreviewUrl = "";
   currentImagePreviewTitle = "";
+}
+
+function revokeDocumentDraftUrl() {
+  if (documentDraftImageUrl && documentDraftImageUrl.startsWith("blob:")) {
+    URL.revokeObjectURL(documentDraftImageUrl);
+  }
+}
+
+function resetDocumentDraftState() {
+  revokeDocumentDraftUrl();
+  documentDraftImageFile = null;
+  documentDraftImageUrl = "";
+  documentDraftImageName = "";
+  documentDraftRemoveImage = false;
+}
+
+function getDocumentStorageReference(path) {
+  return `storage:${documentImageBucketName}/${path}`;
+}
+
+function parseDocumentStorageReference(value) {
+  if (!value || typeof value !== "string" || !value.startsWith("storage:")) {
+    return null;
+  }
+
+  const reference = value.slice("storage:".length);
+  const slashIndex = reference.indexOf("/");
+
+  if (slashIndex === -1) {
+    return null;
+  }
+
+  const bucket = reference.slice(0, slashIndex);
+  const path = reference.slice(slashIndex + 1);
+
+  if (!bucket || !path) {
+    return null;
+  }
+
+  return { bucket, path };
+}
+
+function resolveDocumentPreviewUrl(imageUrl) {
+  const storageReference = parseDocumentStorageReference(imageUrl);
+
+  if (!storageReference) {
+    return imageUrl || "";
+  }
+
+  const { data } = supabaseClient.storage.from(storageReference.bucket).getPublicUrl(storageReference.path);
+  return data?.publicUrl || "";
+}
+
+function getActiveDocumentPreviewUrl(documentItem = null) {
+  if (documentDraftRemoveImage) {
+    return "";
+  }
+
+  if (documentDraftImageUrl) {
+    return documentDraftImageUrl;
+  }
+
+  return documentItem?.preview_url || "";
+}
+
+function getActiveDocumentImageName(documentItem = null) {
+  if (documentDraftImageName) {
+    return documentDraftImageName;
+  }
+
+  if (!documentDraftRemoveImage && documentItem?.preview_url) {
+    return "現在の画像";
+  }
+
+  return "";
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("file read failed"));
+    };
+
+    reader.onerror = () => reject(reader.error || new Error("file read failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image load failed"));
+    image.src = src;
+  });
+}
+
+async function buildDocumentImageDataUrl(file) {
+  const sourceDataUrl = await readFileAsDataUrl(file);
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("invalid image type");
+  }
+
+  if (file.size <= 900 * 1024) {
+    return sourceDataUrl;
+  }
+
+  const image = await loadImageElement(sourceDataUrl);
+  const maxSize = 1600;
+  const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return sourceDataUrl;
+  }
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+  const outputQuality = outputType === "image/png" ? undefined : 0.82;
+  const optimizedDataUrl = canvas.toDataURL(outputType, outputQuality);
+
+  if (optimizedDataUrl.length >= sourceDataUrl.length) {
+    return sourceDataUrl;
+  }
+
+  return optimizedDataUrl;
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, data] = dataUrl.split(",");
+  const mimeMatch = header.match(/data:(.*?);base64/);
+  const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+  const binary = window.atob(data);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mimeType });
+}
+
+function getImageExtension(file) {
+  const name = String(file?.name || "");
+  const parts = name.split(".");
+  const explicitExtension = parts.length > 1 ? parts.pop().toLowerCase() : "";
+
+  if (explicitExtension) {
+    return explicitExtension;
+  }
+
+  if (file?.type === "image/png") {
+    return "png";
+  }
+
+  if (file?.type === "image/webp") {
+    return "webp";
+  }
+
+  return "jpg";
+}
+
+async function uploadDocumentImage(tripId, file) {
+  const optimizedDataUrl = await buildDocumentImageDataUrl(file);
+  const blob = dataUrlToBlob(optimizedDataUrl);
+  const extension = getImageExtension(file);
+  const path = `${currentGroupId}/${tripId}/${Date.now()}-${Math.random().toString(16).slice(2)}.${extension}`;
+  const { error } = await supabaseClient.storage.from(documentImageBucketName).upload(path, blob, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: blob.type || file.type || "image/jpeg",
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return getDocumentStorageReference(path);
+}
+
+async function deleteStoredDocumentImage(imageUrl) {
+  const storageReference = parseDocumentStorageReference(imageUrl);
+
+  if (!storageReference) {
+    return;
+  }
+
+  const { error } = await supabaseClient.storage.from(storageReference.bucket).remove([storageReference.path]);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function createFriendlyStorageError(error) {
+  const message = String(error?.message || "");
+
+  if (message.includes("Bucket not found")) {
+    return `Supabase Storage の ${documentImageBucketName} バケットが見つかりません。バケットを作成してください。`;
+  }
+
+  if (message.includes("row-level security") || message.includes("permission denied") || message.includes("Unauthorized")) {
+    return "画像アップロードの権限がありません。Supabase Storage のポリシーを確認してください。";
+  }
+
+  return "";
+}
+
+async function handleDocumentImageSelection(file) {
+  if (!file) {
+    resetDocumentDraftState();
+    if (activeTab === "documents") {
+      renderDocumentsTab();
+    }
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    setDocumentFormStatus("画像ファイルを選んでください。");
+    return;
+  }
+
+  if (file.size > 8 * 1024 * 1024) {
+    setDocumentFormStatus("画像は8MB以下にしてください。");
+    return;
+  }
+
+  try {
+    setDocumentFormStatus("画像を準備中");
+    revokeDocumentDraftUrl();
+    documentDraftImageFile = file;
+    documentDraftImageUrl = URL.createObjectURL(file);
+    documentDraftImageName = file.name;
+    documentDraftRemoveImage = false;
+    setDocumentFormStatus("");
+  } catch {
+    setDocumentFormStatus("画像の読み込みに失敗しました。別の画像で試してください。");
+  }
 }
 
 function renderTripList() {
@@ -822,6 +1081,8 @@ function renderDocumentsTab() {
   const submitLabel = documentFormMode === "edit" ? "更新する" : "登録する";
   const disabledAttr = isDocumentProcessing || isDocumentLoading ? "disabled" : "";
   const selectedDocument = getSelectedDocument();
+  const previewUrl = getActiveDocumentPreviewUrl(selectedDocument);
+  const imageName = getActiveDocumentImageName(selectedDocument);
 
   tabContent.innerHTML = `
     <div class="section-toolbar">
@@ -834,12 +1095,24 @@ function renderDocumentsTab() {
 
     <div id="documentFormSection" class="trip-form ${documentFormOpen ? "" : "hidden"}">
       <h4>${formTitle}</h4>
-      <p class="panel-text">メモだけを保存できます。画像追加は一旦外しています。</p>
-      ${documentFormMode === "edit" && selectedDocument?.preview_url ? `<img class="document-image" src="${escapeHtml(selectedDocument.preview_url)}" alt="現在の画像">` : ""}
+      <p class="panel-text">画像、メモ、関連URLをまとめて保存できます。</p>
 
       <form id="documentForm">
         <label for="documentTitle">タイトル</label>
         <input id="documentTitle" type="text" placeholder="たとえば 予約画面" ${disabledAttr}>
+
+        <label for="documentImageFile">画像</label>
+        <input id="documentImageFile" type="file" accept="image/*" ${disabledAttr}>
+        <p class="upload-help">スマホ写真やスクショを追加できます。大きい画像は自動で軽くします。</p>
+        ${previewUrl ? `
+          <div class="document-image-preview-box">
+            <img class="document-image" src="${escapeHtml(previewUrl)}" alt="${escapeHtml(selectedDocument?.title || "画像プレビュー")}" data-action="open-image" data-url="${escapeHtml(previewUrl)}" data-title="${escapeHtml(selectedDocument?.title || imageName || "画像")}">
+            <div class="document-image-preview-meta">
+              <span>${escapeHtml(imageName || "画像を追加済み")}</span>
+              <button type="button" data-action="remove-document-image" class="secondary-button" ${disabledAttr}>画像を外す</button>
+            </div>
+          </div>
+        ` : `<div class="document-thumb-placeholder inline-placeholder">画像はまだありません</div>`}
 
         <label for="documentMemo">メモ</label>
         <textarea id="documentMemo" rows="4" placeholder="気をつけることを書けます" ${disabledAttr}></textarea>
@@ -956,6 +1229,7 @@ function openDocumentForm(mode, documentId = null) {
   selectedDocumentId = documentId;
   documentFormOpen = true;
   documentFormStatus = "";
+  resetDocumentDraftState();
   renderDocumentsTab();
 }
 
@@ -964,6 +1238,7 @@ function closeDocumentForm() {
   selectedDocumentId = null;
   documentFormOpen = false;
   documentFormStatus = "";
+  resetDocumentDraftState();
   if (activeTab === "documents") {
     renderDocumentsTab();
   }
@@ -1019,7 +1294,7 @@ async function loadDocuments(tripId) {
     const rows = Array.isArray(data) ? data : [];
     const mappedRows = rows.map((row) => ({
       ...row,
-      preview_url: row.image_url || "",
+      preview_url: resolveDocumentPreviewUrl(row.image_url || ""),
     }));
 
     if (requestToken !== documentLoadToken) {
@@ -1075,11 +1350,26 @@ async function saveDocument() {
   setDocumentFormStatus(documentFormMode === "edit" ? "更新中" : "登録中");
 
   try {
+    const currentDocument = documentFormMode === "edit" ? getSelectedDocument() : null;
+    const previousImageUrl = currentDocument?.image_url || null;
+    let nextImageUrl = previousImageUrl;
+    let uploadedImageUrl = "";
+
+    if (documentDraftRemoveImage) {
+      nextImageUrl = null;
+    }
+
+    if (documentDraftImageFile) {
+      setDocumentFormStatus("画像をアップロード中");
+      uploadedImageUrl = await uploadDocumentImage(selectedTrip.id, documentDraftImageFile);
+      nextImageUrl = uploadedImageUrl;
+    }
+
     const payload = {
       group_id: currentGroupId,
       trip_id: selectedTrip.id,
       title: values.title,
-      image_url: documentFormMode === "edit" ? getSelectedDocument()?.image_url || null : null,
+      image_url: nextImageUrl,
       memo: values.memo || null,
       related_url: values.related_url || null,
     };
@@ -1093,20 +1383,31 @@ async function saveDocument() {
         .eq("trip_id", selectedTrip.id);
 
       if (error) {
+        if (uploadedImageUrl) {
+          await deleteStoredDocumentImage(uploadedImageUrl).catch(() => {});
+        }
         throw error;
       }
     } else {
       const { error } = await supabaseClient.from("documents").insert([payload]);
 
       if (error) {
+        if (uploadedImageUrl) {
+          await deleteStoredDocumentImage(uploadedImageUrl).catch(() => {});
+        }
         throw error;
       }
+    }
+
+    if (previousImageUrl && previousImageUrl !== nextImageUrl) {
+      await deleteStoredDocumentImage(previousImageUrl).catch(() => {});
     }
 
     closeDocumentForm();
     await loadDocuments(selectedTrip.id);
   } catch (error) {
-    setDocumentFormStatus(createFriendlyCrudError("資料", error));
+    const storageMessage = documentDraftImageFile || documentDraftRemoveImage ? createFriendlyStorageError(error) : "";
+    setDocumentFormStatus(storageMessage || createFriendlyCrudError("資料", error));
   } finally {
     setDocumentProcessing(false);
   }
@@ -1148,6 +1449,10 @@ async function deleteDocument(documentId) {
 
     if (String(selectedDocumentId) === String(documentId)) {
       closeDocumentForm();
+    }
+
+    if (currentDocument?.image_url) {
+      await deleteStoredDocumentImage(currentDocument.image_url).catch(() => {});
     }
 
     await loadDocuments(selectedTrip.id);
@@ -1386,6 +1691,16 @@ function setupEventListeners() {
       return;
     }
 
+    if (action === "remove-document-image") {
+      documentDraftImageFile = null;
+      revokeDocumentDraftUrl();
+      documentDraftImageUrl = "";
+      documentDraftImageName = "";
+      documentDraftRemoveImage = true;
+      renderDocumentsTab();
+      return;
+    }
+
     if (action === "open-related-url" && url) {
       openExternalUrl(url);
       return;
@@ -1415,6 +1730,21 @@ function setupEventListeners() {
 
     if (event.target.id === "documentForm") {
       void saveDocument();
+    }
+  });
+
+  tabContent.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return;
+    }
+
+    if (event.target.id === "documentImageFile") {
+      const [file] = Array.from(event.target.files || []);
+      void handleDocumentImageSelection(file || null).finally(() => {
+        if (activeTab === "documents") {
+          renderDocumentsTab();
+        }
+      });
     }
   });
 

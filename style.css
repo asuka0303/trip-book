@@ -20,6 +20,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   color: var(--text);
   background:
@@ -807,13 +808,35 @@ button:disabled {
 
 @media (max-width: 640px) {
   .page {
-    width: min(100% - 20px, 920px);
-    padding: 20px 0 28px;
+    width: min(100% - 16px, 920px);
+    padding: 16px 0 24px;
+  }
+
+  .hero {
+    margin-bottom: 18px;
+    padding: 4px 2px 0;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 10vw, 2.8rem);
+  }
+
+  h2 {
+    font-size: 1.28rem;
   }
 
   .card {
-    padding: 20px;
-    border-radius: 20px;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .auth-box,
+  .guide-section,
+  .panel,
+  .trip-form,
+  .detail-box {
+    padding: 14px;
+    border-radius: 18px;
   }
 
   .button-row,
@@ -835,9 +858,70 @@ button:disabled {
     flex-direction: column;
   }
 
+  .group-session-bar {
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+  }
+
+  #groupSessionInfo {
+    gap: 6px;
+    line-height: 1.5;
+    font-size: 0.92rem;
+  }
+
+  .group-session-id,
+  .group-session-id-badge {
+    align-self: flex-start;
+  }
+
+  .auth-box h3,
+  .guide-heading h2,
+  .panel h3,
+  .trip-form h3,
+  .detail-box h4 {
+    font-size: 1.08rem;
+  }
+
+  label {
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+
+  input,
+  button,
+  textarea {
+    min-height: 48px;
+    font-size: 0.98rem;
+  }
+
+  input,
+  textarea {
+    border-radius: 12px;
+  }
+
+  input {
+    padding: 0 14px;
+  }
+
+  textarea {
+    min-height: 100px;
+    padding: 12px 14px;
+  }
+
+  .tab-row {
+    gap: 8px;
+  }
+
+  .tab-button {
+    width: 100%;
+  }
+
   .guide-section {
-    padding: 18px;
-    border-radius: 22px;
+    padding: 16px;
+    border-radius: 18px;
   }
 
   .guide-comic {
@@ -850,6 +934,14 @@ button:disabled {
 
   .document-image-preview-meta button {
     width: 100%;
+  }
+
+  .trip-card,
+  .place-card,
+  .document-card,
+  .schedule-card {
+    padding: 14px;
+    border-radius: 16px;
   }
 }
 

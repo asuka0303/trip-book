@@ -13,8 +13,6 @@ const tripTitleInput = document.getElementById("tripTitle");
 const tripDestinationInput = document.getElementById("tripDestination");
 const tripStartDateInput = document.getElementById("tripStartDate");
 const tripEndDateInput = document.getElementById("tripEndDate");
-const tripMeetingPlaceInput = document.getElementById("tripMeetingPlace");
-const tripMeetingTimeInput = document.getElementById("tripMeetingTime");
 const tripImportantNoteInput = document.getElementById("tripImportantNote");
 
 const tripDetailEmpty = document.getElementById("tripDetailEmpty");
@@ -23,8 +21,6 @@ const detailTitle = document.getElementById("detailTitle");
 const detailDestination = document.getElementById("detailDestination");
 const detailStartDate = document.getElementById("detailStartDate");
 const detailEndDate = document.getElementById("detailEndDate");
-const detailMeetingPlace = document.getElementById("detailMeetingPlace");
-const detailMeetingTime = document.getElementById("detailMeetingTime");
 const detailImportantNote = document.getElementById("detailImportantNote");
 const tabContent = document.getElementById("tabContent");
 const tabButtons = Array.from(document.querySelectorAll('[role="tablist"][aria-label="旅行の情報タブ"] .tab-button'));
@@ -248,8 +244,6 @@ function getTripFormValues() {
     destination: normalizeInput(tripDestinationInput.value),
     start_date: tripStartDateInput.value,
     end_date: tripEndDateInput.value,
-    meeting_place: normalizeInput(tripMeetingPlaceInput.value),
-    meeting_time: tripMeetingTimeInput.value,
     important_note: normalizeInput(tripImportantNoteInput.value),
   };
 }
@@ -271,8 +265,6 @@ function resetTripForm() {
   tripDestinationInput.value = "";
   tripStartDateInput.value = "";
   tripEndDateInput.value = "";
-  tripMeetingPlaceInput.value = "";
-  tripMeetingTimeInput.value = "";
   tripImportantNoteInput.value = "";
   showMessage(tripFormMessage, "");
 }
@@ -665,8 +657,6 @@ function showTripDetail(trip) {
   detailDestination.textContent = formatText(trip.destination);
   detailStartDate.textContent = formatDate(trip.start_date);
   detailEndDate.textContent = formatDate(trip.end_date);
-  detailMeetingPlace.textContent = formatText(trip.meeting_place);
-  detailMeetingTime.textContent = formatTime(trip.meeting_time);
   detailImportantNote.textContent = formatText(trip.important_note);
 
   renderTripList();
@@ -1774,7 +1764,7 @@ async function loadTrips() {
   try {
     const { data, error } = await supabaseClient
       .from("trips")
-      .select("id, title, destination, start_date, end_date, meeting_place, meeting_time, important_note, created_at")
+      .select("id, title, destination, start_date, end_date, important_note, created_at")
       .eq("group_id", currentGroupId)
       .order("created_at", { ascending: false });
 
@@ -1827,8 +1817,6 @@ async function saveTrip() {
         destination: values.destination || null,
         start_date: values.start_date || null,
         end_date: values.end_date || null,
-        meeting_place: values.meeting_place || null,
-        meeting_time: values.meeting_time || null,
         important_note: values.important_note || null,
       },
     ]);

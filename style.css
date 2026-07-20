@@ -1,16 +1,16 @@
 :root {
-  --bg: #fff8f1;
-  --card: #ffffff;
-  --card-soft: #fffaf3;
-  --text: #233042;
-  --subtext: #5f6d7f;
-  --line: #f0dcc2;
-  --accent: #ff8a1f;
-  --accent-dark: #e97300;
-  --accent-soft: #fff0df;
+  --bg: #fff7ed;
+  --card: #fffdf9;
+  --card-soft: #fff6ea;
+  --text: #263241;
+  --subtext: #6a7483;
+  --line: #edd6b4;
+  --accent: #ff8a1e;
+  --accent-dark: #e66f00;
+  --accent-soft: #fff0d9;
   --error: #c2415b;
   --success: #2e7d62;
-  --shadow: 0 18px 50px rgba(198, 110, 18, 0.14);
+  --shadow: 0 18px 50px rgba(207, 121, 35, 0.14);
 }
 
 * {
@@ -23,9 +23,9 @@ body {
   font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(255, 170, 74, 0.24) 0, transparent 30%),
-    radial-gradient(circle at top right, rgba(255, 224, 191, 0.92) 0, transparent 26%),
-    radial-gradient(circle at 20% 95%, rgba(255, 138, 31, 0.12) 0, transparent 22%),
+    radial-gradient(circle at top left, rgba(255, 181, 92, 0.32) 0, transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 224, 188, 0.45) 0, transparent 26%),
+    radial-gradient(circle at bottom right, rgba(255, 146, 43, 0.14) 0, transparent 24%),
     var(--bg);
 }
 
@@ -43,11 +43,12 @@ body {
 
 .hero::after {
   content: "";
-  position: absolute;
-  inset: auto 0 -8px 0;
-  height: 4px;
+  display: block;
+  width: 96px;
+  height: 5px;
+  margin-top: 14px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), rgba(255, 138, 31, 0.18));
+  background: linear-gradient(90deg, var(--accent), rgba(255, 138, 30, 0.18));
 }
 
 .eyebrow {
@@ -81,7 +82,7 @@ h2 {
   width: 100%;
   max-width: 1100px;
   padding: 28px;
-  border: 1px solid rgba(255, 138, 31, 0.18);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 24px;
   background: var(--card);
   box-shadow: var(--shadow);
@@ -104,7 +105,7 @@ textarea {
 
 input,
 textarea {
-  border: 1px solid var(--line);
+  border: 1px solid #efd9bb;
   background: #fff;
   color: var(--text);
 }
@@ -126,7 +127,7 @@ textarea {
 
 input:focus,
 textarea:focus {
-  outline: 3px solid rgba(255, 159, 67, 0.22);
+  outline: 3px solid rgba(255, 138, 30, 0.22);
   border-color: var(--accent);
 }
 
@@ -162,8 +163,8 @@ button:not(:disabled):active {
 #signupButton,
 .secondary-button {
   background: var(--accent-soft);
-  color: #a75900;
-  border: 1px solid rgba(255, 138, 31, 0.28);
+  color: #a85f00;
+  border: 1px solid #f4c789;
 }
 
 button:disabled {
@@ -185,7 +186,7 @@ button:disabled {
   margin: 18px 0 0;
   padding: 14px 16px;
   border-radius: 16px;
-  background: #f6fbff;
+  background: #fff7ee;
   border: 1px solid var(--line);
   word-break: break-all;
 }
@@ -194,10 +195,8 @@ button:disabled {
   margin: 18px 0 0;
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 138, 31, 0.18);
-  background:
-    linear-gradient(180deg, rgba(255, 248, 240, 0.95), rgba(255, 255, 255, 0.98)),
-    #fff;
+  border: 1px solid rgba(237, 214, 180, 0.95);
+  background: linear-gradient(180deg, #fffefb, #fff7ee);
 }
 
 .auth-box h3 {
@@ -207,10 +206,10 @@ button:disabled {
 .guide-section {
   margin-top: 28px;
   padding: 28px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 248, 241, 0.96)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 242, 224, 0.96)),
     #fff;
   box-shadow: var(--shadow);
 }
@@ -235,10 +234,10 @@ button:disabled {
 
 .guide-card {
   padding: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(67, 93, 125, 0.08);
+  background: linear-gradient(180deg, #fffdf9, #fff6ea);
+  box-shadow: 0 12px 30px rgba(207, 121, 35, 0.08);
 }
 
 .guide-art {
@@ -248,7 +247,7 @@ button:disabled {
   margin-bottom: 14px;
   border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(180deg, #fff7ea, #eef7ff);
+  background: linear-gradient(180deg, #fff4df, #fff9f0);
 }
 
 .guide-art::before {
@@ -256,9 +255,9 @@ button:disabled {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(255, 159, 67, 0.18) 0 8px, transparent 9px),
-    radial-gradient(circle at 80% 25%, rgba(255, 159, 67, 0.1) 0 7px, transparent 8px),
-    radial-gradient(circle at 60% 78%, rgba(67, 93, 125, 0.08) 0 10px, transparent 11px);
+    radial-gradient(circle at 20% 20%, rgba(255, 138, 30, 0.22) 0 8px, transparent 9px),
+    radial-gradient(circle at 80% 25%, rgba(255, 138, 30, 0.12) 0 7px, transparent 8px),
+    radial-gradient(circle at 60% 78%, rgba(238, 111, 0, 0.08) 0 10px, transparent 11px);
 }
 
 .guide-step {
@@ -291,7 +290,7 @@ button:disabled {
 .guide-art--login .guide-window {
   inset: 22% 20% 24% 20%;
   border-radius: 18px;
-  border: 2px solid rgba(255, 159, 67, 0.32);
+  border: 2px solid rgba(255, 138, 30, 0.32);
   background: rgba(255, 255, 255, 0.8);
 }
 
@@ -339,7 +338,7 @@ button:disabled {
   left: 16%;
   top: 16%;
   right: auto;
-  background: #fff3e4;
+  background: #ffe7c7;
   transform: rotate(-8deg);
 }
 
@@ -351,15 +350,15 @@ button:disabled {
   border-radius: 999px;
   background: var(--accent);
   box-shadow:
-    0 14px 0 0 rgba(219, 229, 239, 0.95),
-    0 28px 0 0 rgba(219, 229, 239, 0.95);
+    0 14px 0 0 rgba(237, 214, 180, 0.9),
+    0 28px 0 0 rgba(237, 214, 180, 0.9);
 }
 
 .guide-art--photo .guide-photo-frame {
   inset: 18% 18% 20% 18%;
   border-radius: 18px;
-  border: 3px solid rgba(67, 93, 125, 0.14);
-  background: linear-gradient(180deg, #e8f5ff 0 52%, #fff8e9 52% 100%);
+  border: 3px solid rgba(237, 214, 180, 0.22);
+  background: linear-gradient(180deg, #eaf4ff 0 52%, #fff3dc 52% 100%);
 }
 
 .guide-art--photo .guide-photo-sun {
@@ -368,7 +367,7 @@ button:disabled {
   right: 28%;
   top: 28%;
   border-radius: 50%;
-  background: #ffcf66;
+  background: #ffc24a;
 }
 
 .guide-art--photo .guide-photo-mountain {
@@ -376,7 +375,7 @@ button:disabled {
   bottom: 26%;
   width: 44%;
   height: 24%;
-  background: linear-gradient(135deg, #9cc0dc 0 50%, #7fa3c2 50% 100%);
+  background: linear-gradient(135deg, #9abfe0 0 50%, #6f98bf 50% 100%);
   clip-path: polygon(0 100%, 20% 40%, 38% 66%, 54% 28%, 74% 52%, 100% 100%);
 }
 
@@ -423,9 +422,9 @@ button:disabled {
   gap: 12px;
   margin-bottom: 16px;
   padding: 14px 18px;
-  border: 1px solid rgba(255, 138, 31, 0.16);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 18px;
-  background: rgba(255, 250, 243, 0.92);
+  background: rgba(255, 252, 247, 0.92);
   box-shadow: var(--shadow);
 }
 
@@ -434,8 +433,50 @@ button:disabled {
   min-height: 44px;
 }
 
+#groupSessionInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.group-session-label,
+.group-session-name {
+  color: var(--text);
+}
+
+.group-session-id-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.group-session-id {
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: #fff4e6;
+  border: 1px solid rgba(255, 138, 30, 0.28);
+  color: var(--accent-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+}
+
 .auth-panel {
   margin-top: 14px;
+}
+
+.field-help {
+  margin: 8px 0 0;
+  color: var(--subtext);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .hidden {
@@ -447,10 +488,10 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 24px;
-  border: 1px dashed rgba(255, 138, 31, 0.24);
+  border: 1px dashed rgba(237, 214, 180, 0.95);
   border-radius: 18px;
   color: var(--subtext);
-  background: rgba(255, 247, 237, 0.78);
+  background: rgba(255, 250, 242, 0.8);
 }
 
 .member-header,
@@ -472,9 +513,9 @@ button:disabled {
 
 .panel {
   padding: 20px;
-  border: 1px solid rgba(255, 138, 31, 0.16);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 22px;
-  background: var(--card-soft);
+  background: linear-gradient(180deg, #fffdf8, var(--card-soft));
 }
 
 .panel h3,
@@ -488,8 +529,8 @@ button:disabled {
   margin-top: 18px;
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: #fffdf9;
+  border: 1px solid rgba(237, 214, 180, 0.95);
+  background: linear-gradient(180deg, #fffdf8, #fff8ef);
 }
 
 .form-grid {
@@ -510,9 +551,9 @@ button:disabled {
 .schedule-card {
   padding: 18px;
   text-align: left;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(237, 214, 180, 0.95);
   border-radius: 20px;
-  background: #fff;
+  background: linear-gradient(180deg, #fffdfb, #fff7ed);
   color: var(--text);
 }
 
@@ -530,12 +571,12 @@ button:disabled {
 
 .trip-card.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.18);
 }
 
 .schedule-card.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.16);
 }
 
 .detail-panel {
@@ -545,8 +586,8 @@ button:disabled {
 .detail-box {
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: #fff;
+  border: 1px solid rgba(237, 214, 180, 0.95);
+  background: linear-gradient(180deg, #fffdfb, #fff8ee);
 }
 
 .detail-box p {
@@ -574,7 +615,7 @@ button:disabled {
 .tab-button.active {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: #a75900;
+  color: #a85f00;
 }
 
 .tab-content {
@@ -676,7 +717,7 @@ button:disabled {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 16px;
-  border: 1px solid rgba(255, 138, 31, 0.18);
+  border: 1px solid var(--line);
   margin-bottom: 12px;
   cursor: zoom-in;
 }
@@ -752,12 +793,12 @@ button:disabled {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 16px;
-  border: 1px dashed rgba(255, 138, 31, 0.22);
+  border: 1px dashed var(--line);
   display: grid;
   place-items: center;
   color: var(--subtext);
   margin-bottom: 12px;
-  background: #fff8f0;
+  background: #fafcff;
 }
 
 .inline-placeholder {
@@ -789,7 +830,8 @@ button:disabled {
   .panel-header,
   .schedule-toolbar,
   .guide-comic,
-  .document-image-preview-meta {
+  .document-image-preview-meta,
+  .group-session-bar {
     flex-direction: column;
   }
 
@@ -800,6 +842,10 @@ button:disabled {
 
   .guide-comic {
     grid-template-columns: 1fr;
+  }
+
+  #groupSessionInfo {
+    width: 100%;
   }
 
   .document-image-preview-meta button {

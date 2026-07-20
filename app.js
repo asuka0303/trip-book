@@ -197,7 +197,12 @@ function setAppLockedState(isLocked) {
   if (!isLocked) {
     const name = currentGroupName || "未設定";
     if (groupSessionInfo) {
-      groupSessionInfo.textContent = `利用中グループ: ${name} / ID: ${currentGroupId}`;
+      groupSessionInfo.innerHTML = `
+        <span class="group-session-label">利用中グループ:</span>
+        <span class="group-session-name">${escapeHtml(name)}</span>
+        <span class="group-session-id-badge">ID</span>
+        <span class="group-session-id">${escapeHtml(currentGroupId)}</span>
+      `;
     }
     return;
   }

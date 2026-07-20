@@ -1,16 +1,16 @@
 :root {
-  --bg: #f8fbff;
+  --bg: #fff8f1;
   --card: #ffffff;
-  --card-soft: #f9fcff;
+  --card-soft: #fffaf3;
   --text: #233042;
   --subtext: #5f6d7f;
-  --line: #dbe5ef;
-  --accent: #ff9f43;
-  --accent-dark: #f38b18;
-  --accent-soft: #fff3e4;
+  --line: #f0dcc2;
+  --accent: #ff8a1f;
+  --accent-dark: #e97300;
+  --accent-soft: #fff0df;
   --error: #c2415b;
   --success: #2e7d62;
-  --shadow: 0 18px 50px rgba(67, 93, 125, 0.12);
+  --shadow: 0 18px 50px rgba(198, 110, 18, 0.14);
 }
 
 * {
@@ -23,8 +23,9 @@ body {
   font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, #fff7ea 0, transparent 28%),
-    radial-gradient(circle at top right, #e9f5ff 0, transparent 24%),
+    radial-gradient(circle at top left, rgba(255, 170, 74, 0.24) 0, transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 224, 191, 0.92) 0, transparent 26%),
+    radial-gradient(circle at 20% 95%, rgba(255, 138, 31, 0.12) 0, transparent 22%),
     var(--bg);
 }
 
@@ -37,6 +38,16 @@ body {
 .hero {
   margin-bottom: 24px;
   padding: 8px 4px;
+  position: relative;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -8px 0;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), rgba(255, 138, 31, 0.18));
 }
 
 .eyebrow {
@@ -70,7 +81,7 @@ h2 {
   width: 100%;
   max-width: 1100px;
   padding: 28px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 138, 31, 0.18);
   border-radius: 24px;
   background: var(--card);
   box-shadow: var(--shadow);
@@ -151,8 +162,8 @@ button:not(:disabled):active {
 #signupButton,
 .secondary-button {
   background: var(--accent-soft);
-  color: #9a5b00;
-  border: 1px solid #ffd7a8;
+  color: #a75900;
+  border: 1px solid rgba(255, 138, 31, 0.28);
 }
 
 button:disabled {
@@ -183,8 +194,10 @@ button:disabled {
   margin: 18px 0 0;
   padding: 18px;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: #fffdf9;
+  border: 1px solid rgba(255, 138, 31, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 240, 0.95), rgba(255, 255, 255, 0.98)),
+    #fff;
 }
 
 .auth-box h3 {
@@ -410,9 +423,9 @@ button:disabled {
   gap: 12px;
   margin-bottom: 16px;
   padding: 14px 18px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 138, 31, 0.16);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.84);
+  background: rgba(255, 250, 243, 0.92);
   box-shadow: var(--shadow);
 }
 
@@ -434,10 +447,10 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 24px;
-  border: 1px dashed var(--line);
+  border: 1px dashed rgba(255, 138, 31, 0.24);
   border-radius: 18px;
   color: var(--subtext);
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 247, 237, 0.78);
 }
 
 .member-header,
@@ -459,7 +472,7 @@ button:disabled {
 
 .panel {
   padding: 20px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 138, 31, 0.16);
   border-radius: 22px;
   background: var(--card-soft);
 }
@@ -517,12 +530,12 @@ button:disabled {
 
 .trip-card.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.14);
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.18);
 }
 
 .schedule-card.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.16);
 }
 
 .detail-panel {
@@ -561,7 +574,7 @@ button:disabled {
 .tab-button.active {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: #9a5b00;
+  color: #a75900;
 }
 
 .tab-content {
@@ -663,7 +676,7 @@ button:disabled {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 138, 31, 0.18);
   margin-bottom: 12px;
   cursor: zoom-in;
 }
@@ -739,12 +752,12 @@ button:disabled {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 16px;
-  border: 1px dashed var(--line);
+  border: 1px dashed rgba(255, 138, 31, 0.22);
   display: grid;
   place-items: center;
   color: var(--subtext);
   margin-bottom: 12px;
-  background: #fafcff;
+  background: #fff8f0;
 }
 
 .inline-placeholder {

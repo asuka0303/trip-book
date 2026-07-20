@@ -1,5 +1,5 @@
-// このファイルは、ログインなしで旅行の登録と表示を動かします。
-// 旅行、行き先、資料をまとめて使えます。
+// このファイルは、グループIDと合言葉でログインして旅行データを扱います。
+// 旅行、行き先、資料はグループ単位で分離されます。
 
 const showTripFormButton = document.getElementById("showTripFormButton");
 const tripFormSection = document.getElementById("tripFormSection");
@@ -27,16 +27,40 @@ const detailMeetingPlace = document.getElementById("detailMeetingPlace");
 const detailMeetingTime = document.getElementById("detailMeetingTime");
 const detailImportantNote = document.getElementById("detailImportantNote");
 const tabContent = document.getElementById("tabContent");
-const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
+const tabButtons = Array.from(document.querySelectorAll('[role="tablist"][aria-label="旅行の情報タブ"] .tab-button'));
+
+const groupAuthSection = document.getElementById("groupAuthSection");
+const authTabCreate = document.getElementById("authTabCreate");
+const authTabJoin = document.getElementById("authTabJoin");
+const authCreatePanel = document.getElementById("authCreatePanel");
+const authJoinPanel = document.getElementById("authJoinPanel");
+const groupNameInput = document.getElementById("createGroupName");
+const groupPasswordCreateInput = document.getElementById("createGroupSecret");
+const createGroupButton = document.getElementById("createGroupButton");
+const createGroupMessage = document.getElementById("createGroupMessage");
+const groupIdInput = document.getElementById("joinGroupId");
+const groupPasswordJoinInput = document.getElementById("joinGroupSecret");
+const joinGroupButton = document.getElementById("joinGroupButton");
+const joinGroupMessage = document.getElementById("joinGroupMessage");
+const groupSessionBar = document.getElementById("groupSessionBar");
+const appSection = document.getElementById("appSection");
+const groupSessionInfo = document.getElementById("groupSessionInfo");
+const logoutButton = document.getElementById("logoutButton");
 
 const imagePreviewModal = document.getElementById("imagePreviewModal");
 const imagePreview = document.getElementById("imagePreview");
 const closeImageModalButton = document.getElementById("closeImageModalButton");
 
 let supabaseClient = null;
+let bootstrapClient = null;
+let supabaseProjectUrl = "";
+let supabasePublishableKey = "";
 let trips = [];
 let selectedTripId = null;
-let activeTab = "overview";
+let activeTab = "places";
+let currentGroupId = "";
+let currentGroupName = "";
+let currentGroupSecret = "";
 
 let places = [];
 let placeLoadedTripId = null;
@@ -59,7 +83,6 @@ let documentListStatus = "";
 let documentFormStatus = "";
 let isDocumentLoading = false;
 let isDocumentProcessing = false;
-let pendingDocumentImagePath = "";
 let currentImagePreviewUrl = "";
 let currentImagePreviewTitle = "";
 
@@ -99,6 +122,112 @@ function createUniqueId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function createGroupId() {
+  const randomPart = Math.random().toString(16).slice(2, 10);
+  return `grp-${randomPart}`;
+}
+
+function getSessionStorageKey() {
+  return "tripBookGroupSession";
+}
+
+function saveGroupSession() {
+  const payload = {
+    groupId: currentGroupId,
+    groupName: currentGroupName,
+    groupSecret: currentGroupSecret,
+  };
+
+  localStorage.setItem(getSessionStorageKey(), JSON.stringify(payload));
+}
+
+function clearGroupSession() {
+  localStorage.removeItem(getSessionStorageKey());
+}
+
+function restoreGroupSession() {
+  try {
+    const raw = localStorage.getItem(getSessionStorageKey());
+
+    if (!raw) {
+      return false;
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (!parsed?.groupId || !parsed?.groupSecret) {
+      return false;
+    }
+
+    currentGroupId = String(parsed.groupId);
+    currentGroupName = String(parsed.groupName || "");
+    currentGroupSecret = String(parsed.groupSecret);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function createAuthedSupabaseClient(projectUrl, publishableKey) {
+  return window.supabase.createClient(projectUrl, publishableKey, {
+    global: {
+      headers: {
+        "x-group-id": currentGroupId,
+        "x-group-secret": currentGroupSecret,
+      },
+    },
+  });
+}
+
+function setAppLockedState(isLocked) {
+  groupAuthSection.classList.toggle("hidden", !isLocked);
+  appSection.classList.toggle("hidden", isLocked);
+  tripDetailEmpty.classList.toggle("hidden", isLocked);
+  groupSessionBar.classList.toggle("hidden", isLocked);
+
+  if (!isLocked) {
+    const name = currentGroupName || "未設定";
+    if (groupSessionInfo) {
+      groupSessionInfo.textContent = `利用中グループ: ${name} / ${currentGroupId}`;
+    }
+    return;
+  }
+
+  if (groupSessionInfo) {
+    groupSessionInfo.textContent = "";
+  }
+}
+
+function handleLogout() {
+  clearGroupSession();
+  supabaseClient = null;
+  trips = [];
+  selectedTripId = null;
+  activeTab = "places";
+  currentGroupId = "";
+  currentGroupName = "";
+  currentGroupSecret = "";
+  resetDetailState();
+  closeTripForm();
+  tripList.innerHTML = "";
+  showMessage(tripListMessage, "");
+  setAuthTab("create");
+  setAppLockedState(true);
+}
+
+function setAuthTab(tab) {
+  const isCreate = tab === "create";
+  authTabCreate.classList.toggle("active", isCreate);
+  authTabJoin.classList.toggle("active", !isCreate);
+  authCreatePanel.classList.toggle("hidden", !isCreate);
+  authJoinPanel.classList.toggle("hidden", isCreate);
+}
+
+function resetAuthMessages() {
+  showMessage(createGroupMessage, "");
+  showMessage(joinGroupMessage, "");
 }
 
 function getTripFormValues() {
@@ -170,7 +299,6 @@ function resetDocumentState() {
   documentFormStatus = "";
   isDocumentLoading = false;
   isDocumentProcessing = false;
-  pendingDocumentImagePath = "";
 }
 
 function resetDetailState() {
@@ -247,7 +375,7 @@ function renderTripList() {
     `;
 
     button.addEventListener("click", () => {
-      activeTab = "overview";
+      activeTab = "places";
       showTripDetail(trip);
     });
 
@@ -287,14 +415,6 @@ function renderTabContent() {
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", isActive ? "true" : "false");
   });
-
-  if (activeTab === "overview") {
-    tabContent.innerHTML = `
-      <p class="panel-text">この旅行の基本の情報です。</p>
-      <p class="panel-text">行き先とスクショ・メモは下のタブで見られます。</p>
-    `;
-    return;
-  }
 
   if (activeTab === "places") {
     renderPlacesTab();
@@ -536,6 +656,7 @@ async function loadPlaces(tripId) {
     const { data, error } = await supabaseClient
       .from("places")
       .select("id, trip_id, name, address, map_url, visit_date, visit_time, memo, created_at")
+      .eq("group_id", currentGroupId)
       .eq("trip_id", tripId)
       .order("visit_date", { ascending: true })
       .order("visit_time", { ascending: true });
@@ -596,6 +717,7 @@ async function savePlace() {
 
   try {
     const payload = {
+      group_id: currentGroupId,
       trip_id: selectedTrip.id,
       name: values.name,
       address: values.address || null,
@@ -609,6 +731,7 @@ async function savePlace() {
       const { error } = await supabaseClient
         .from("places")
         .update(payload)
+        .eq("group_id", currentGroupId)
         .eq("id", selectedPlaceId)
         .eq("trip_id", selectedTrip.id);
 
@@ -656,6 +779,7 @@ async function deletePlace(placeId) {
     const { error } = await supabaseClient
       .from("places")
       .delete()
+      .eq("group_id", currentGroupId)
       .eq("id", placeId)
       .eq("trip_id", selectedTrip.id);
 
@@ -710,15 +834,12 @@ function renderDocumentsTab() {
 
     <div id="documentFormSection" class="trip-form ${documentFormOpen ? "" : "hidden"}">
       <h4>${formTitle}</h4>
-      <p class="panel-text">画像は trip-images に保存し、画像の場所を documents.image_url に入れます。</p>
+      <p class="panel-text">メモだけを保存できます。画像追加は一旦外しています。</p>
       ${documentFormMode === "edit" && selectedDocument?.preview_url ? `<img class="document-image" src="${escapeHtml(selectedDocument.preview_url)}" alt="現在の画像">` : ""}
 
       <form id="documentForm">
         <label for="documentTitle">タイトル</label>
         <input id="documentTitle" type="text" placeholder="たとえば 予約画面" ${disabledAttr}>
-
-        <label for="documentImage">画像</label>
-        <input id="documentImage" type="file" accept="image/*" ${disabledAttr}>
 
         <label for="documentMemo">メモ</label>
         <textarea id="documentMemo" rows="4" placeholder="気をつけることを書けます" ${disabledAttr}></textarea>
@@ -794,35 +915,25 @@ function renderDocumentsList() {
 function fillDocumentForm() {
   const documentItem = documentFormMode === "edit" ? getSelectedDocument() : null;
   const titleInput = tabContent.querySelector("#documentTitle");
-  const imageInput = tabContent.querySelector("#documentImage");
   const memoInput = tabContent.querySelector("#documentMemo");
   const relatedUrlInput = tabContent.querySelector("#documentRelatedUrl");
 
-  if (!titleInput || !imageInput || !memoInput || !relatedUrlInput) {
+  if (!titleInput || !memoInput || !relatedUrlInput) {
     return;
   }
 
   titleInput.value = documentItem?.title || "";
   memoInput.value = documentItem?.memo || "";
   relatedUrlInput.value = documentItem?.related_url || "";
-  imageInput.value = "";
-
-  if (documentFormMode === "edit") {
-    pendingDocumentImagePath = documentItem?.image_url || "";
-  } else {
-    pendingDocumentImagePath = "";
-  }
 }
 
 function getDocumentFormValues() {
   const titleInput = tabContent.querySelector("#documentTitle");
-  const imageInput = tabContent.querySelector("#documentImage");
   const memoInput = tabContent.querySelector("#documentMemo");
   const relatedUrlInput = tabContent.querySelector("#documentRelatedUrl");
 
   return {
     title: normalizeInput(titleInput?.value || ""),
-    imageFile: imageInput?.files?.[0] || null,
     memo: normalizeInput(memoInput?.value || ""),
     related_url: normalizeInput(relatedUrlInput?.value || ""),
   };
@@ -831,10 +942,6 @@ function getDocumentFormValues() {
 function validateDocumentForm(values) {
   if (!values.title) {
     return "タイトルを入れてください。";
-  }
-
-  if (documentFormMode === "create" && !values.imageFile) {
-    return "画像を選んでください。";
   }
 
   return "";
@@ -857,7 +964,6 @@ function closeDocumentForm() {
   selectedDocumentId = null;
   documentFormOpen = false;
   documentFormStatus = "";
-  pendingDocumentImagePath = "";
   if (activeTab === "documents") {
     renderDocumentsTab();
   }
@@ -884,24 +990,6 @@ function setDocumentProcessing(nextState) {
   }
 }
 
-async function getSignedPreviewUrl(imagePath) {
-  if (!imagePath) {
-    return "";
-  }
-
-  if (/^https?:\/\//i.test(imagePath)) {
-    return imagePath;
-  }
-
-  const { data, error } = await supabaseClient.storage.from("trip-images").createSignedUrl(imagePath, 3600);
-
-  if (error) {
-    return "";
-  }
-
-  return data?.signedUrl || "";
-}
-
 async function loadDocuments(tripId) {
   const requestToken = ++documentLoadToken;
   documentLoadedTripId = tripId;
@@ -916,6 +1004,7 @@ async function loadDocuments(tripId) {
     const { data, error } = await supabaseClient
       .from("documents")
       .select("id, trip_id, title, image_url, memo, related_url, created_at")
+      .eq("group_id", currentGroupId)
       .eq("trip_id", tripId)
       .order("created_at", { ascending: false });
 
@@ -928,12 +1017,10 @@ async function loadDocuments(tripId) {
     }
 
     const rows = Array.isArray(data) ? data : [];
-    const mappedRows = await Promise.all(
-      rows.map(async (row) => ({
-        ...row,
-        preview_url: row.image_url ? await getSignedPreviewUrl(row.image_url) : "",
-      }))
-    );
+    const mappedRows = rows.map((row) => ({
+      ...row,
+      preview_url: row.image_url || "",
+    }));
 
     if (requestToken !== documentLoadToken) {
       return;
@@ -964,33 +1051,6 @@ async function loadDocuments(tripId) {
   }
 }
 
-async function uploadDocumentImage(file, tripId) {
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-  const filePath = `${tripId}/${Date.now()}-${createUniqueId()}-${safeName}`;
-  const { error } = await supabaseClient.storage.from("trip-images").upload(filePath, file, {
-    contentType: file.type || undefined,
-    upsert: false,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  return filePath;
-}
-
-async function deleteDocumentImage(imagePath) {
-  if (!imagePath || /^https?:\/\//i.test(imagePath)) {
-    return;
-  }
-
-  const { error } = await supabaseClient.storage.from("trip-images").remove([imagePath]);
-
-  if (error) {
-    throw error;
-  }
-}
-
 async function saveDocument() {
   if (isDocumentProcessing) {
     return;
@@ -1014,18 +1074,12 @@ async function saveDocument() {
   setDocumentProcessing(true);
   setDocumentFormStatus(documentFormMode === "edit" ? "更新中" : "登録中");
 
-  let uploadedImagePath = pendingDocumentImagePath;
-  const existingDocument = documentFormMode === "edit" ? getSelectedDocument() : null;
-
   try {
-    if (values.imageFile) {
-      uploadedImagePath = await uploadDocumentImage(values.imageFile, selectedTrip.id);
-    }
-
     const payload = {
+      group_id: currentGroupId,
       trip_id: selectedTrip.id,
       title: values.title,
-      image_url: uploadedImagePath || null,
+      image_url: documentFormMode === "edit" ? getSelectedDocument()?.image_url || null : null,
       memo: values.memo || null,
       related_url: values.related_url || null,
     };
@@ -1034,19 +1088,12 @@ async function saveDocument() {
       const { error } = await supabaseClient
         .from("documents")
         .update(payload)
+        .eq("group_id", currentGroupId)
         .eq("id", selectedDocumentId)
         .eq("trip_id", selectedTrip.id);
 
       if (error) {
         throw error;
-      }
-
-      if (values.imageFile && existingDocument?.image_url && existingDocument.image_url !== uploadedImagePath) {
-        try {
-          await deleteDocumentImage(existingDocument.image_url);
-        } catch {
-          // 画像の削除に失敗しても、資料の更新は止めません。
-        }
       }
     } else {
       const { error } = await supabaseClient.from("documents").insert([payload]);
@@ -1059,22 +1106,6 @@ async function saveDocument() {
     closeDocumentForm();
     await loadDocuments(selectedTrip.id);
   } catch (error) {
-    if (values.imageFile && uploadedImagePath && documentFormMode === "create") {
-      try {
-        await deleteDocumentImage(uploadedImagePath);
-      } catch {
-        // 失敗しても続けます。
-      }
-    }
-
-    if (values.imageFile && uploadedImagePath && documentFormMode === "edit" && existingDocument?.image_url !== uploadedImagePath) {
-      try {
-        await deleteDocumentImage(uploadedImagePath);
-      } catch {
-        // 失敗しても続けます。
-      }
-    }
-
     setDocumentFormStatus(createFriendlyCrudError("資料", error));
   } finally {
     setDocumentProcessing(false);
@@ -1107,19 +1138,12 @@ async function deleteDocument(documentId) {
     const { error } = await supabaseClient
       .from("documents")
       .delete()
+      .eq("group_id", currentGroupId)
       .eq("id", documentId)
       .eq("trip_id", selectedTrip.id);
 
     if (error) {
       throw error;
-    }
-
-    if (currentDocument?.image_url) {
-      try {
-        await deleteDocumentImage(currentDocument.image_url);
-      } catch {
-        // 画像の削除に失敗しても、資料の削除は進めます。
-      }
     }
 
     if (String(selectedDocumentId) === String(documentId)) {
@@ -1134,7 +1158,167 @@ async function deleteDocument(documentId) {
   }
 }
 
+async function applyGroupSession() {
+  supabaseClient = createAuthedSupabaseClient(supabaseProjectUrl, supabasePublishableKey);
+  selectedTripId = null;
+  closeTripForm();
+  resetDetailState();
+  renderTabContent();
+  setAppLockedState(false);
+  await loadTrips();
+}
+
+async function createGroupAndLogin() {
+  resetAuthMessages();
+
+  const groupName = normalizeInput(groupNameInput.value);
+  const groupSecret = normalizeInput(groupPasswordCreateInput.value);
+
+  if (!groupName) {
+    showMessage(createGroupMessage, "グループ名を入れてください。");
+    return;
+  }
+
+  if (groupSecret.length < 4) {
+    showMessage(createGroupMessage, "合言葉は4文字以上にしてください。");
+    return;
+  }
+
+  createGroupButton.disabled = true;
+  showMessage(createGroupMessage, "作成中");
+
+  try {
+    let created = null;
+
+    for (let i = 0; i < 5; i += 1) {
+      const generatedGroupId = createGroupId();
+      const { data, error } = await bootstrapClient.rpc("create_trip_group", {
+        p_group_id: generatedGroupId,
+        p_group_name: groupName,
+        p_group_secret: groupSecret,
+      });
+
+      if (!error) {
+        created = data;
+        break;
+      }
+
+      if (!String(error.message || "").includes("duplicate")) {
+        throw error;
+      }
+    }
+
+    if (!created || !created.group_id) {
+      throw new Error("group create failed");
+    }
+
+    currentGroupId = String(created.group_id);
+    currentGroupName = String(created.group_name || groupName);
+    currentGroupSecret = groupSecret;
+    saveGroupSession();
+    await applyGroupSession();
+    showMessage(createGroupMessage, "");
+    groupIdInput.value = currentGroupId;
+  } catch (error) {
+    showMessage(createGroupMessage, createFriendlyCrudError("グループ", error));
+  } finally {
+    createGroupButton.disabled = false;
+  }
+}
+
+async function joinGroup() {
+  resetAuthMessages();
+
+  const groupId = normalizeInput(groupIdInput.value).toLowerCase();
+  const groupSecret = normalizeInput(groupPasswordJoinInput.value);
+
+  if (!groupId) {
+    showMessage(joinGroupMessage, "グループIDを入れてください。");
+    return;
+  }
+
+  if (!groupSecret) {
+    showMessage(joinGroupMessage, "合言葉を入れてください。");
+    return;
+  }
+
+  joinGroupButton.disabled = true;
+  showMessage(joinGroupMessage, "確認中");
+
+  try {
+    const { data, error } = await bootstrapClient.rpc("verify_trip_group", {
+      p_group_id: groupId,
+      p_group_secret: groupSecret,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    const isValid = Boolean(row?.is_valid);
+
+    if (!isValid) {
+      showMessage(joinGroupMessage, "グループIDか合言葉が違います。");
+      return;
+    }
+
+    currentGroupId = groupId;
+    currentGroupName = String(row?.group_name || "");
+    currentGroupSecret = groupSecret;
+    saveGroupSession();
+    await applyGroupSession();
+    showMessage(joinGroupMessage, "");
+  } catch (error) {
+    showMessage(joinGroupMessage, createFriendlyCrudError("グループ", error));
+  } finally {
+    joinGroupButton.disabled = false;
+  }
+}
+
+async function tryRestoreAndLoginGroup() {
+  const hasSession = restoreGroupSession();
+
+  if (!hasSession) {
+    setAppLockedState(true);
+    return;
+  }
+
+  const { data, error } = await bootstrapClient.rpc("verify_trip_group", {
+    p_group_id: currentGroupId,
+    p_group_secret: currentGroupSecret,
+  });
+
+  if (error) {
+    clearGroupSession();
+    setAppLockedState(true);
+    return;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  const isValid = Boolean(row?.is_valid);
+
+  if (!isValid) {
+    clearGroupSession();
+    setAppLockedState(true);
+    return;
+  }
+
+  currentGroupName = String(row?.group_name || currentGroupName || "");
+  await applyGroupSession();
+}
+
 function setupEventListeners() {
+  authTabCreate.addEventListener("click", () => setAuthTab("create"));
+  authTabJoin.addEventListener("click", () => setAuthTab("join"));
+  createGroupButton.addEventListener("click", () => {
+    void createGroupAndLogin();
+  });
+  joinGroupButton.addEventListener("click", () => {
+    void joinGroup();
+  });
+  logoutButton.addEventListener("click", handleLogout);
+
   showTripFormButton.addEventListener("click", openTripForm);
   cancelTripFormButton.addEventListener("click", closeTripForm);
   saveTripButton.addEventListener("click", saveTrip);
@@ -1256,6 +1440,7 @@ async function loadTrips() {
     const { data, error } = await supabaseClient
       .from("trips")
       .select("id, title, destination, start_date, end_date, meeting_place, meeting_time, important_note, created_at")
+      .eq("group_id", currentGroupId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -1302,6 +1487,7 @@ async function saveTrip() {
   try {
     const { error } = await supabaseClient.from("trips").insert([
       {
+        group_id: currentGroupId,
         title: values.title,
         destination: values.destination || null,
         start_date: values.start_date || null,
@@ -1338,12 +1524,15 @@ async function startApp() {
     return;
   }
 
-  const projectUrl = normalizeSupabaseUrl(SUPABASE_URL);
-  supabaseClient = window.supabase.createClient(projectUrl, SUPABASE_PUBLISHABLE_KEY);
+  supabaseProjectUrl = normalizeSupabaseUrl(SUPABASE_URL);
+  supabasePublishableKey = SUPABASE_PUBLISHABLE_KEY;
+  bootstrapClient = window.supabase.createClient(supabaseProjectUrl, supabasePublishableKey);
 
   setupEventListeners();
+  setAuthTab("create");
+  setAppLockedState(true);
   renderTabContent();
-  await loadTrips();
+  await tryRestoreAndLoginGroup();
 }
 
 document.addEventListener("DOMContentLoaded", startApp);

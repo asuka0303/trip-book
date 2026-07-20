@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="8" fill="#ff9f43"/>
-  <!-- スーツケース本体 -->
-  <rect x="7" y="13" width="18" height="14" rx="3" fill="#fff"/>
-  <!-- スーツケース取っ手 -->
-  <path d="M12 13v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-  <!-- 中央のライン -->
-  <line x1="16" y1="13" x2="16" y2="27" stroke="#ff9f43" stroke-width="1.5"/>
-  <!-- 横ベルト -->
-  <line x1="7" y1="20" x2="25" y2="20" stroke="#ff9f43" stroke-width="1.5"/>
-  <!-- 留め具 -->
-  <rect x="14" y="18.5" width="4" height="3" rx="1" fill="#ff9f43"/>
+  <!-- 左ページ -->
+  <path d="M5 8 Q5 7 6 7 L15 7 L15 25 L6 25 Q5 25 5 24 Z" fill="#fff"/>
+  <!-- 右ページ -->
+  <path d="M17 7 L26 7 Q27 7 27 8 L27 24 Q27 25 26 25 L17 25 Z" fill="#fffaf4"/>
+  <!-- 中央の綴じ目 -->
+  <line x1="16" y1="7" x2="16" y2="25" stroke="#f0e8d8" stroke-width="2"/>
+  <!-- 左ページ罫線 -->
+  <line x1="7" y1="12" x2="13" y2="12" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="7" y1="15" x2="13" y2="15" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="7" y1="18" x2="11" y2="18" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- 右ページ罫線 -->
+  <line x1="19" y1="12" x2="25" y2="12" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="19" y1="15" x2="25" y2="15" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <line x1="19" y1="18" x2="23" y2="18" stroke="#dbe5ef" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- しおりリボン（右ページ右上から垂れる） -->
+  <path d="M23 7 L25 7 L25 17 L24 15.5 L23 17 Z" fill="#f38b18"/>
 </svg>

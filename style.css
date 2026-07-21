@@ -504,15 +504,18 @@ button:disabled {
 }
 
 #tripDetailEmpty {
-  min-height: 140px;
-  padding: 16px;
-  border-color: rgba(237, 214, 180, 0.7);
-  background: rgba(255, 250, 242, 0.55);
+  min-height: 0;
+  display: block;
+  padding: 0;
+  margin: 0 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 #tripDetailEmpty p {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: rgba(67, 93, 125, 0.68);
 }
 
